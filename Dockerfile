@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7-labs
 ARG PIP_VERSION=24.0
 ARG BASE_IMAGE=ubuntu:22.04
 
@@ -27,8 +26,7 @@ RUN apt-get update && \
 
 ARG PIP_VERSION
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-RUN --mount=type=cache,id=pip-cache-bootstrap,target=/root/.cache/pip/http \
-    python3 -m pip install -U pip==${PIP_VERSION}
+RUN python3 -m pip install -U pip==${PIP_VERSION}
 
 # We build OpenH264, FFmpeg and PyAV in a separate build stage,
 # because this way Docker can do it in parallel to all the other packages.
@@ -65,8 +63,7 @@ RUN sed -i '/^av==/!d' /tmp/utils/dataset_manifest/requirements.txt
 # Work around https://github.com/PyAV-Org/PyAV/issues/1140
 RUN pip install setuptools wheel 'cython<3'
 
-RUN --mount=type=cache,id=pip-cache-av,target=/root/.cache/pip/http-v2 \
-    python3 -m pip wheel --no-binary=av --no-build-isolation \
+RUN python3 -m pip wheel --no-binary=av --no-build-isolation \
     -r /tmp/utils/dataset_manifest/requirements.txt \
     -w /tmp/wheelhouse
 
@@ -81,8 +78,7 @@ RUN sed -i '/^av==/d' /tmp/utils/dataset_manifest/requirements.txt
 
 ARG CVAT_CONFIGURATION="production"
 
-RUN --mount=type=cache,id=pip-cache-main,target=/root/.cache/pip/http-v2 \
-    DATUMARO_HEADLESS=1 python3 -m pip wheel --no-deps --no-binary lxml,xmlsec \
+RUN DATUMARO_HEADLESS=1 python3 -m pip wheel --no-deps --no-binary lxml,xmlsec \
     -r /tmp/cvat/requirements/${CVAT_CONFIGURATION}.txt \
     -w /tmp/wheelhouse
 
@@ -172,9 +168,10 @@ ARG PIP_VERSION
 ARG PIP_DISABLE_PIP_VERSION_CHECK=1
 
 RUN python -m pip install -U pip==${PIP_VERSION}
-RUN --mount=type=bind,from=build-image,source=/tmp/wheelhouse,target=/mnt/wheelhouse \
-    --mount=type=bind,from=build-image-av,source=/tmp/wheelhouse,target=/mnt/wheelhouse-av \
-    python -m pip install --no-index /mnt/wheelhouse/*.whl /mnt/wheelhouse-av/*.whl
+COPY --from=build-image /tmp/wheelhouse /mnt/wheelhouse
+COPY --from=build-image-av /tmp/wheelhouse /mnt/wheelhouse-av
+RUN python -m pip install --no-index /mnt/wheelhouse/*.whl /mnt/wheelhouse-av/*.whl && \
+    rm -rf /mnt/wheelhouse /mnt/wheelhouse-av
 
 ENV NUMPROCS=1
 COPY --from=build-image-av /opt/ffmpeg/lib /usr/lib
