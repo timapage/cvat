@@ -29,3 +29,15 @@ LOGGING["loggers"]["uvicorn.access"] = {
     "level": "INFO",
     "propagate": False,
 }
+
+# --- Read CSRF trusted origins from environment (Django 4+ needs scheme) ---
+import os
+_csrf = (
+    os.environ.get("CSRF_TRUSTED_ORIGINS")
+    or os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS")
+    or os.environ.get("CVAT_CSRF_TRUSTED_ORIGINS")
+)
+if _csrf:
+    # accept space or comma separated
+    CSRF_TRUSTED_ORIGINS = [o for o in _csrf.replace(",", " ").split() if o]
+
