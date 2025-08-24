@@ -210,3 +210,4 @@ RUN mkdir -p data share keys logs /tmp/supervisord static
 
 EXPOSE 8080
 ENTRYPOINT ["./backend_entrypoint.sh"]
+CMD ["run", "server"]
