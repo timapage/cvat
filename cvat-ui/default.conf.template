@@ -8,7 +8,7 @@ server {
     location / {
         try_files $uri /index.html;
     }
-
+    API_ORIGIN=https://cvat-production.up.railway.app
     # Proxy all API calls to the backend (set API_ORIGIN in Railway)
     location /api/ {
         proxy_pass https://cvat-production.up.railway.app/api/;           # e.g. https://cvat-production.up.railway.app
