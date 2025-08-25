@@ -1,24 +1,20 @@
 server {
-    listen 80;
-    server_name _;
+  listen 80;
+  server_name _;
 
-    root /usr/share/nginx/html;
-    index index.html;
+  root /usr/share/nginx/html;
+  index index.html;
 
-    # SPA routing
-    location / {
-        try_files $uri /index.html;
-    }
+  location / { try_files $uri /index.html; }
 
-    # Proxy all API requests to the backend (set API_ORIGIN env in Railway)
-    location /api/ {
-        proxy_pass ${API_ORIGIN};           # e.g. https://cvat-production.up.railway.app
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 120s;
-        proxy_ssl_server_name on;           # SNI for HTTPS upstreams
-    }
+  location /api/ {
+    proxy_pass ${API_ORIGIN};            # e.g. https://cvat-production.up.railway.app
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 120s;
+    proxy_ssl_server_name on;            # SNI for HTTPS upstreams
+  }
 }
