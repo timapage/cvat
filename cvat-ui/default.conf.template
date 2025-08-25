@@ -1,3 +1,4 @@
+
 server {
   listen 80;
   server_name _;
@@ -5,16 +6,20 @@ server {
   root /usr/share/nginx/html;
   index index.html;
 
-  location / { try_files $uri /index.html; }
+  # SPA routing
+  location / {
+    try_files $$uri /index.html;
+  }
 
+  # Proxy API to backend (API_ORIGIN is substituted by envsubst)
   location /api/ {
-    proxy_pass https://cvat-production.up.railway.app;            # e.g. https://cvat-production.up.railway.app
+    proxy_pass proxy_pass https://cvat-production.up.railway.app;;            
     proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Host $$host;
+    proxy_set_header X-Forwarded-Host $$host;
+    proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $$scheme;
     proxy_read_timeout 120s;
-    proxy_ssl_server_name on;            # SNI for HTTPS upstreams
+    proxy_ssl_server_name on;
   }
 }
